@@ -27,7 +27,6 @@ void setup() {
     needCalibrate = true;
   }
 
-//  doCoffee();
   if ( curCycle < CYCLECOUNT ) {
     if ( digitalRead( HALF_PIN ) == HIGH ) {
       timeToDegree = setOne;
@@ -43,7 +42,9 @@ void loop() {
     doCalibrate();
   } else {
     doCoffee();
-//    ledBlink(PROXY_LED,1000);
+  }
+  if ( showFinish ) {
+    ledBlink(PROXY_LED,1000);
   }
 
 }

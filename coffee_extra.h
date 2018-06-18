@@ -36,6 +36,9 @@ volatile unsigned long ledTime = 0;
 
 volatile boolean needCalibrate = false;
 volatile boolean turnedOn = false;
+volatile boolean showFinish = false;
+
+volatile boolean playMelody = true;
 
 int melody[MY_NOTES] = {
   NOTE_D4, NOTE_D4, NOTE_F4, NOTE_F4, NOTE_D4, NOTE_D4, NOTE_AS3,
@@ -114,6 +117,8 @@ static boolean calibrDone = false;
     } else {
       ledBlink( LED_PIN, 300 );
     }
+  } else {
+    showFinish = true;
   }
 }
 
@@ -153,8 +158,11 @@ void doCoffee() {
       }
     }
   } else {
-    ledBlink(PROXY_LED,1000);
+    if ( playMelody ) {
+      finalCut();
+      playMelody = false;
+    }
+    showFinish = true;
   }
-//  finalCut();
 }
 
