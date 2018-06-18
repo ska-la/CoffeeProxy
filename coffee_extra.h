@@ -24,9 +24,10 @@ unsigned int dutyTime = 0;
 
 unsigned int timeToDegree = 0;  //--- time to degree (msec/C) value ----
 
-unsigned int setOne = 0;
-unsigned int setTwo = 0;
+unsigned int setOne = 0;        //--- value for full volume ------------
+unsigned int setTwo = 0;        //--- value for half volume ------------
 
+//-------------------------- EEPROM addr offset ------------------------
 unsigned int addrOne = 0;
 unsigned int addrTwo = sizeof(int);
 
@@ -34,6 +35,7 @@ volatile unsigned long startTime = 0;
 volatile unsigned long ledTime = 0;
 
 volatile boolean needCalibrate = false;
+volatile boolean turnedOn = false;
 
 int melody[MY_NOTES] = {
   NOTE_D4, NOTE_D4, NOTE_F4, NOTE_F4, NOTE_D4, NOTE_D4, NOTE_AS3,
@@ -128,22 +130,31 @@ int pauseBetweenNotes = 0;
 }
 
 void doCoffee() {
-  if ( digitalRead( HALF_PIN ) == HIGH ) {
-    timeToDegree = setOne;
+  if ( curCycle < CYCLECOUNT ) {
+    if ( dutyTime == 0 ) {
+      dutyTime = timeToDegree * m1[curCycle] ;
+      digitalWrite( LED_PIN, HIGH );
+      digitalWrite( RELAY_OUT, LOW );
+      startTime = millis();
+      turnedOn = true;
+    } else {
+      if ( turnedOn ) {
+        if ( ( millis() - startTime ) > dutyTime ) {
+          digitalWrite( LED_PIN, LOW );
+          digitalWrite( RELAY_OUT, HIGH );
+          turnedOn = false;
+          Serial.println( curCycle + 1 );
+        }
+      } else {
+        if ( ( millis() - startTime ) > CYCLENGTH ) {
+          curCycle++;
+          dutyTime = 0;
+        }
+      }
+    }
   } else {
-    timeToDegree = setTwo;
+    ledBlink(PROXY_LED,1000);
   }
-  while( curCycle < CYCLECOUNT ) {
-    digitalWrite( LED_PIN, HIGH );
-    digitalWrite( RELAY_OUT, LOW );
-    dutyTime = timeToDegree * m1[curCycle] ;
-    delay( dutyTime );
-    Serial.println( curCycle + 1 );
-    digitalWrite( LED_PIN, LOW );
-    digitalWrite( RELAY_OUT, HIGH );
-    delay(CYCLENGTH - dutyTime);
-    curCycle++;
-  }
-  finalCut();
+//  finalCut();
 }
 
