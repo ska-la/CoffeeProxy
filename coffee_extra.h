@@ -1,9 +1,8 @@
 //-----
 #include <Arduino.h>
 
-#define CYCLENGTH 60000        //--- repeat time (cycle) ---------------
-/*#define CYCLECOUNT 14          //--- repeat count ----------------------*/
-#define CYCLECOUNT 13          //--- repeat count ----------------------
+#define CYCLENGTH    60000     //--- repeat time (cycle) ---------------
+#define CYCLECOUNT   13        //--- repeat count ----------------------
 
 #define RESET_BUTTON 2         //--- Reset button assignment -----------
 #define RELAY_OUT    8         //--- connect to Relay ------------------
@@ -14,10 +13,22 @@
 #define PROXY_LED    11        //--- LED to READY status ---------------
 #define MY_NOTES     14        //--- notes in melody amount ------------
 #define DEGREE_RANGE 70        //--- 25 - 95 C ----
+#define NUM_LEVELS   3
+
+//------------------ ADC's values for TA-288 digital thermometer -------
+//------------------ with 24 kOhm deviding resistor --------------------
+//--- TA-288 values range: 90 - 6.5 kOhm from 25 to 95 Celcius degrees -
+#define TEMP_75C     395
+#define TEMP_90C     287
+#define TEMP_95C     255
+
+#define TEMPIN       A1        //--- analog input pin ------------------
+
+int tempLevel[ NUM_LEVELS ] = { TEMP_75C, TEMP_90C, TEMP_95C };
 
 /*--------------------------- temperature delta -----------------------*/
-//unsigned short m1[CYCLECOUNT] = {10,10,10,5,5,5,5,5,4,4,4,3,3,3};
-unsigned short m1[CYCLECOUNT] = {10,10,10,10,10,6,5,4,3,2,2,2,2};
+//unsigned short m1[CYCLECOUNT] = {10,10,10,10,10,6,5,4,3,2,2,2,2}; --- used when a temp sensors is absent
+unsigned short deltaTemp[ NUM_LEVELS ] = { 10, 5, 2 };
 
 unsigned short curCycle = 0;
 unsigned int dutyTime = 0;
@@ -135,9 +146,12 @@ int pauseBetweenNotes = 0;
 }
 
 void doCoffee() {
-  if ( curCycle < CYCLECOUNT ) {
+static unsigned short curLevel = 0;
+//  if ( curCycle < CYCLECOUNT ) { --- used when a temp sensors is absent
+  if ( curLevel < NUM_LEVELS  ) {
     if ( dutyTime == 0 ) {
-      dutyTime = timeToDegree * m1[curCycle] ;
+//      dutyTime = timeToDegree * m1[curCycle] ; --- used when a temp sensors is absent
+      dutyTime = timeToDegree * deltaTemp[curLevel] ;
       digitalWrite( LED_PIN, HIGH );
       digitalWrite( RELAY_OUT, LOW );
       startTime = millis();
@@ -154,6 +168,9 @@ void doCoffee() {
         if ( ( millis() - startTime ) > CYCLENGTH ) {
           curCycle++;
           dutyTime = 0;
+          if ( analogRead( TEMPIN ) < tempLevel [ curLevel ] ) {
+            curLevel ++ ;
+          }
         }
       }
     }

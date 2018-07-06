@@ -11,6 +11,7 @@ void setup() {
   pinMode( CALIBRATE_ME, INPUT_PULLUP );
   pinMode( RESET_BUTTON, INPUT_PULLUP );
   pinMode( HALF_PIN, INPUT_PULLUP );
+  analogReference( DEFAULT );           //--- define a reference voltage for ADC --
 
   if ( digitalRead(RESET_BUTTON) == LOW ) {
     startTime = millis();

@@ -1,2 +1,2 @@
 ## About
-The 2nd version (w/o temp sensor).
+The version with a temp sensor.
